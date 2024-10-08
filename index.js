@@ -1,11 +1,17 @@
 import express from "express";
 import connect from "./ds.js";
+import rootRoutes from "./src/routes/rootRoutes.js";
 // Tạo object tổng của express
 const app = express();
 
 //thêm middleware để convert string về json với API POST và PUT
 
 app.use(express.json());
+
+// import rootRoutes vào index.js
+
+
+app.use(rootRoutes)
 
 // viết API hello world
 app.get("/hello-world", (req, res) => {
@@ -23,10 +29,10 @@ app.get("/get-user/:id/:hoTen", (req, res) => {
   res.send({ id, hoTen, queryString, token });
 });
 
-app.get("/get-user-db", async (req, res) => {
-  const [data] = await connect.query(`SELECT * from restaurant`);
-  res.send(data);
-});
+// app.get("/get-user-db", async (req, res) => {
+//   const [data] = await connect.query(`SELECT * from restaurant`);
+//   res.send(data);
+// });
 //lấy body từ api post và put
 
 app.post("/create-user-db", async (req, res) => {
@@ -39,10 +45,10 @@ app.post("/create-user-db", async (req, res) => {
   return res.send(data);
 });
 
-app.post("/create-user", (req, res) => {
-  let body = req.body;
-  res.send(body);
-});
+// app.post("/create-user", (req, res) => {
+//   let body = req.body;
+//   res.send(body);
+// });
 
 // define port cho backend
 app.listen(8080, () => {
