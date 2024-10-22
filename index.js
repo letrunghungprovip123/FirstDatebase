@@ -1,8 +1,13 @@
 import express from "express";
 import connect from "./ds.js";
 import rootRoutes from "./src/routes/rootRoutes.js";
-// Tạo object tổng của express
+import cors from "cors";
+// Tạo object tổng của expresss
 const app = express();
+
+//thêm middleware cors để nhận
+
+app.use(cors());
 
 //thêm middleware để convert string về json với API POST và PUT
 
@@ -10,8 +15,7 @@ app.use(express.json());
 
 // import rootRoutes vào index.js
 
-
-app.use(rootRoutes)
+app.use(rootRoutes);
 
 // viết API hello world
 app.get("/hello-world", (req, res) => {
