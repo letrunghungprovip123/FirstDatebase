@@ -7,12 +7,19 @@ import transporter from "../config/transporter.js";
 import jwt from "jsonwebtoken";
 import { createRefToken, createToken } from "../config/jwt.js";
 import crypto from "crypto";
+import { PrismaClient } from "@prisma/client";
 const model = initModels(sequelize);
+const prisma = new PrismaClient();
 
 const signUp = async (req, res) => {
   try {
     let { full_name, email, pass_word } = req.body;
-    let checkUser = await model.users.findOne({
+    // let checkUser = await model.users.findOne({
+    //   where: {
+    //     email,
+    //   },
+    // });
+    let checkUser = await prisma.users.findFirst({
       where: {
         email,
       },
@@ -21,10 +28,17 @@ const signUp = async (req, res) => {
     if (checkUser) {
       return res.status(400).json({ message: "Email is wrong" });
     }
-    await model.users.create({
-      full_name,
-      email,
-      pass_word: bcrypt.hashSync(pass_word, 10),
+    // await model.users.create({
+    //   full_name,
+    //   email,
+    //   pass_word: bcrypt.hashSync(pass_word, 10),
+    // });
+    await prisma.users.create({
+      data: {
+        full_name,
+        email,
+        pass_word: bcrypt.hashSync(pass_word, 10),
+      },
     });
     // Cấu hình email
     const mailOption = {
@@ -49,51 +63,47 @@ const signUp = async (req, res) => {
 };
 
 const signIn = async (req, res) => {
-  try {
-    let { email, pass_word } = req.body;
-    let checkUser = await model.users.findOne({
-      where: {
-        email,
-      },
-    });
-    if (!checkUser) {
-      return res.status(400).json({ message: "Email is wrong" });
-    }
-    let checkPass = bcrypt.compareSync(pass_word, checkUser.pass_word);
-    if (!checkPass) return res.status(400).json({ message: "Email is wrong" });
-
-    let payload = {
-      userId: checkUser.user_id,
-    };
-    let accessToken = createToken(payload);
-
-    //tạo refresh token
-
-    let refreshToken = createRefToken(payload);
-
-    // lưu refreshToken vào table users
-    await model.users.update(
-      {
-        refresh_token: refreshToken,
-      },
-      {
-        where: {
-          user_id: checkUser.user_id,
-        },
-      }
-    );
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: false, //dùng riêng cho localhost
-      sameSite: "Lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // thời gian tồn tại là 7 ngày
-    });
-    return res
-      .status(200)
-      .json({ message: "Login successfully", token: accessToken });
-  } catch (error) {
-    return res.status(500).json({ message: "error API login" });
+  let { email, pass_word } = req.body;
+  let checkUser = await model.users.findOne({
+    where: {
+      email,
+    },
+  });
+  if (!checkUser) {
+    return res.status(400).json({ message: "Email is wrong" });
   }
+  let checkPass = bcrypt.compareSync(pass_word, checkUser.pass_word);
+  if (!checkPass) return res.status(400).json({ message: "Email is wrong" });
+
+  let payload = {
+    userId: checkUser.user_id,
+  };
+  let accessToken = createToken(payload);
+
+  //tạo refresh token
+
+  let refreshToken = createRefToken(payload);
+
+  // lưu refreshToken vào table users
+  await model.users.update(
+    {
+      refresh_token: refreshToken,
+    },
+    {
+      where: {
+        user_id: checkUser.user_id,
+      },
+    }
+  );
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false, //dùng riêng cho localhost
+    sameSite: "Lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // thời gian tồn tại là 7 ngày
+  });
+  return res
+    .status(200)
+    .json({ message: "Login successfully", token: accessToken });
 };
 
 const loginFacebook = async (req, res) => {

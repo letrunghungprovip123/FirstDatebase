@@ -26,6 +26,15 @@ app.use(express.json());
 
 app.use(rootRoutes);
 
+//define middleware để handle lỗi
+
+app.use((err, req, res, next) => {
+  console.log(err);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server",
+  });
+});
+
 // viết API hello world
 app.get("/hello-world", (req, res) => {
   res.send("Hello world");
@@ -67,3 +76,8 @@ app.post("/create-user-db", async (req, res) => {
 app.listen(8080, () => {
   console.log("BE starting with port 8080");
 });
+
+// B1 : npx prisma init
+// b1.1 : sửa lại infor connection string
+// b2 : npx prisma db pull(db first)
+// b3 : npx prisma generate ( khởi tạo client ) <=>

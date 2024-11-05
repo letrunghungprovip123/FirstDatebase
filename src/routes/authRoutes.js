@@ -7,11 +7,12 @@ import {
   changePassword,
   extendToken,
 } from "../controllers/authController.js";
+import { tryCatch } from "../config/tryCatch.js";
 const authRoutes = express.Router();
 
 authRoutes.post("/sign-up", signUp);
 
-authRoutes.post("/sign-in", signIn);
+authRoutes.post("/sign-in", tryCatch(signIn));
 
 //define API login facebook
 
