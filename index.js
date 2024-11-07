@@ -81,3 +81,27 @@ app.listen(8080, () => {
 // b1.1 : sửa lại infor connection string
 // b2 : npx prisma db pull(db first)
 // b3 : npx prisma generate ( khởi tạo client ) <=>
+
+import swaggerUI from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+
+const option = {
+  definition: {
+    openai: "3.0.0",
+    info: {
+      title: "Swagger nodejs 47",
+      version: "1.0.0",
+      description: 'mô tả swagger'
+    },
+    servers : [
+        {
+            url : 'http://localhost:8080',
+            description : 'mô tả thông tin server'
+        }
+    ]
+  },
+  api:[]
+};
+const specs = swaggerJsdoc(option)
+
+app.use()
