@@ -73,7 +73,7 @@ const signIn = async (req, res) => {
     return res.status(400).json({ message: "Email is wrong" });
   }
   let checkPass = bcrypt.compareSync(pass_word, checkUser.pass_word);
-  if (!checkPass) return res.status(400).json({ message: "Email is wrong" });
+  // if (!checkPass) return res.status(400).json({ message: "Email is wrong" });
 
   let payload = {
     userId: checkUser.user_id,

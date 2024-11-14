@@ -81,27 +81,80 @@ app.listen(8080, () => {
 // b1.1 : sửa lại infor connection string
 // b2 : npx prisma db pull(db first)
 // b3 : npx prisma generate ( khởi tạo client ) <=>
-
-import swaggerUI from "swagger-ui-express";
-import swaggerJsdoc from "swagger-jsdoc";
-
-const option = {
+import swaggerUi from "swagger-ui-express";
+import swaggerJsDoc from "swagger-jsdoc";
+const options = {
   definition: {
-    openai: "3.0.0",
+    openapi: "3.0.0",
     info: {
-      title: "Swagger nodejs 47",
+      title: "Express API Documentation",
       version: "1.0.0",
-      description: 'mô tả swagger'
+      description: "Express API with Swagger",
     },
-    servers : [
-        {
-            url : 'http://localhost:8080',
-            description : 'mô tả thông tin server'
-        }
-    ]
+    servers: [
+      {
+        url: "http://localhost:8080",
+        description: "Local server",
+      },
+    ],
   },
-  api:[]
+  apis: ["index.js"],
 };
-const specs = swaggerJsdoc(option)
+const specs = swaggerJsDoc(options);
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(specs));
 
-app.use()
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { PrismaClient } from "@prisma/client";
+
+const httpServer = createServer(app);
+
+// đối tượng socket server
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
+
+const prisma = new PrismaClient();
+
+io.on("connection", (socket) => {
+  // ...
+  // chat app
+  socket.on("client-chat", async (data) => {
+    let model = {
+      user_id: data.userId,
+      content: data.mess,
+      room_id: data.roomId,
+      date: new Date(),
+    };
+    await prisma.chat.create({ data: model });
+    io.to(data.roomId).emit("send-chat", data);
+  });
+
+  socket.on("join-room", async (roomId) => {
+    socket.rooms.forEach((roomId) => {
+      socket.leave(roomId);
+    });
+    socket.join(roomId);
+    // console.log(roomId);
+    let dataChat = await prisma.chat.findMany({
+      where: {
+        room_id: roomId,
+      },
+    });
+    io.to(data.roomId).emit("send-db-chat", dataChat);
+  });
+
+  //   io.emit("node47", socket.id); // gửi data đến tất cả client đang kết nối
+  //   socket.on("client-send", () => {
+  //     io.emit("send-number", number++);
+  //   });
+
+  //   socket.on("join-room", () => {
+  //     socket.join("room-1");
+  //     console.log(socket.id + "đã vào room-1");
+  //   });
+});
+
+httpServer.listen(8081);

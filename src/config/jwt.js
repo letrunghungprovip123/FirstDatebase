@@ -6,7 +6,7 @@ dotenv.config();
 export const createToken = (data) => {
   return jwt.sign({ payload: data }, process.env.SECRET_KEY, {
     algorithm: "HS256",
-    expiresIn: "10s",
+    expiresIn: "5d",
   });
 };
 
